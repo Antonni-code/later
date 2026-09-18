@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Later</title><link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <a class="brand" href="#saved-heading" aria-label="Later, your saved tabs">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M10 8v14h12" stroke="#faf7ef" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="22" cy="10.5" r="2.5" fill="#dda457"/></svg>
+      <span>Later<span class="brand-dot">.</span></span>
+    </a>
+    <span class="local-pill"><span aria-hidden="true"></span> Only on this device</span>
+  </header>
+  <p class="tagline">A little less open. A little more focus.</p>
+  <section class="current-card" aria-label="Current tab">
+    <p class="eyebrow">OPEN RIGHT NOW</p>
+    <div class="current-preview"><span class="page-monogram" id="current-monogram" aria-hidden="true">—</span><div class="current-copy"><strong id="current-title">Getting your current tab…</strong><span id="current-host">Just a moment</span></div></div>
+    <button id="save-current" class="save-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13v7h16v-7M12 3v12m-5-5 5 5 5-5"/></svg><span id="save-label">Save &amp; close tab</span><svg class="button-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M8 6h10v10"/></svg></button>
+    <p class="current-hint" id="current-hint">It stays here until you’re ready.</p>
+  </section>
+  <div class="feedback" id="feedback" hidden><p id="status" role="status" aria-live="polite"></p><button id="retry" class="text-button" type="button" hidden>Retry</button></div>
+  <section class="shelf" aria-labelledby="saved-heading" aria-busy="true" id="shelf">
+    <div class="section-header"><h2 id="saved-heading" tabindex="-1">Your shelf <span id="count" class="count">—</span></h2><button id="open-all" class="text-button" type="button" disabled>Open all</button></div>
+    <div id="loading-state" class="loading-state" role="status" aria-label="Loading your shelf"><span></span><span></span><span></span></div>
+    <ul id="saved-tabs" class="tab-list" aria-label="Saved tabs"></ul>
+    <div id="empty-state" class="empty-state" hidden><div class="empty-art" aria-hidden="true"><svg viewBox="0 0 64 48"><path d="M11 34h42M16 12h32v22H16zM23 8h18M26 23h12M31 18v10"/></svg></div><h3>Make room for what’s next.</h3><p>Save a tab, close the noise.<br />Your page will be waiting right here.</p><span class="empty-note">No account. No cloud. Just later.</span></div>
+    <button id="show-more" class="show-more" type="button" hidden>Show more saved tabs</button>
+    <div class="shelf-bottom"><span id="shelf-note">Saved pages stay on your shelf after reopening.</span><button id="clear-all" class="text-button clear-button" type="button" disabled>Clear shelf</button></div>
+  </section>
+  <footer><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Private by default</span><span class="footer-dot" aria-hidden="true">·</span><span id="shortcut" class="shortcut">Checking shortcut…</span></footer>
+</main>
+<dialog id="confirm-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description"><h2 id="dialog-title"></h2><p id="dialog-description"></p><div class="dialog-actions"><button id="dialog-cancel" class="secondary-button" type="button" autofocus>Cancel</button><button id="dialog-confirm" class="confirm-button" type="button">Confirm</button></div></dialog>
+<script type="module" src="popup.ts"></script>
+</body>
+</html>
