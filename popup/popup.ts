@@ -19,7 +19,7 @@ const ui = {
   dialog: element<HTMLDialogElement>("confirm-dialog"), dialogTitle: element("dialog-title"), dialogDescription: element("dialog-description"),
   confirm: element<HTMLButtonElement>("dialog-confirm"), cancel: element<HTMLButtonElement>("dialog-cancel"),
   toolbar: element("toolbar"), search: element<HTMLInputElement>("search"), sort: element<HTMLSelectElement>("sort"),
-  range: element<HTMLSelectElement>("range"),
+  ranges: [...document.querySelectorAll<HTMLButtonElement>("[data-range]")],
   noResults: element("no-results"), noResultsText: element("no-results-text"), clearFilters: element<HTMLButtonElement>("clear-filters")
 };
 /** Search, sort and range only change what the popup shows; the shelf itself is never rewritten. */
@@ -95,7 +95,7 @@ function createRow(tab: SavedTab, index: number, words: readonly string[] = []):
   const title = document.createElement("span"); title.className = "tab-title"; marked(title, tab.title, words);
   const meta = document.createElement("span"); meta.className = "tab-meta";
   const host = document.createElement("span"); host.className = "tab-host"; marked(host, displayHost(tab.url), words);
-  const time = document.createElement("span"); time.className = "tab-time"; time.textContent = `· ${relativeTime(tab.savedAt)}`;
+  const time = document.createElement("span"); time.className = "tab-time"; time.textContent = relativeTime(tab.savedAt);
   meta.append(host, time); copy.append(title, meta);
   const openIcon = icon("open"); openIcon.classList.add("open-icon");
   open.append(monogram, copy, openIcon);
@@ -233,7 +233,7 @@ ui.more.addEventListener("click", () => { visibleItems += 40; render(); });
 function setView(next: Partial<View>): void {
   view = { ...view, ...next };
   visibleItems = 40;
-  ui.range.value = view.range;
+  ui.ranges.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.range === view.range)));
   render();
 }
 ui.search.addEventListener("input", () => setView({ query: ui.search.value }));
@@ -246,10 +246,10 @@ ui.sort.addEventListener("change", () => {
   const sort = SORT_KEYS.find(key => key === ui.sort.value) ?? DEFAULT_VIEW.sort;
   setView({ sort: sort satisfies SortKey });
 });
-ui.range.addEventListener("change", () => {
-  const range = RANGES.find(key => key === ui.range.value) ?? DEFAULT_VIEW.range;
+ui.ranges.forEach(button => button.addEventListener("click", () => {
+  const range = RANGES.find(key => key === button.dataset.range) ?? DEFAULT_VIEW.range;
   setView({ range: range satisfies Range });
-});
+}));
 ui.clearFilters.addEventListener("click", () => { ui.search.value = ""; setView({ query: "", range: "all" }); ui.search.focus(); });
 document.addEventListener("keydown", event => {
   const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement;

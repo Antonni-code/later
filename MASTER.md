@@ -4,7 +4,7 @@ Single source of truth for the popup's visual layer. Every colour, size, radius 
 
 ## Theses
 
-**Visual.** A quiet, monochrome utility on one white surface. No cards, panels or colour coding: structure comes from type weight, spacing and two hairlines (under the current tab, above the shelf actions). Near-black for text, a clear green from the logo's family for the single primary action and focus, one grey for everything secondary, red only for destructive actions,  One system font (SF on Apple devices, Segoe UI on Windows) at three sizes. Native menus for filtering and sorting, because they are accessible, keyboard-ready and cost nothing to ship. Light only.
+**Visual.** A quiet, monochrome utility on one white surface. One tinted card holds the tab that is open now; everything else is structured by type weight, spacing and one hairline above the action bar. Near-black for text, a clear green from the logo's family for the single primary action and focus, one grey for everything secondary, red only for destructive actions,  One system font (SF on Apple devices, Segoe UI on Windows) at three sizes. Native menus for filtering and sorting, because they are accessible, keyboard-ready and cost nothing to ship. Light only.
 
 **Interaction.** Immediate and understated: 140ms colour and opacity changes, a 1.5% press on the primary button, row actions that appear on hover or focus, and a 4px fade-in for feedback and the dialog. Search filters as you type, `/` focuses it and Escape clears it. No sliding, bouncing, glowing or looping. `prefers-reduced-motion` turns all of it off.
 
@@ -29,6 +29,8 @@ Light only (`color-scheme: light`). Contrast on white unless stated.
 | `--accent` | `#2d6a4f` | Save button, dialog action, focus ring, search focus | white on it 6.4:1 |
 | `--accent-hover` | `#256246` | Primary hover | white on it 7.2:1 |
 | `--on-accent` | `#ffffff` | Text on `--accent` | |
+| `--accent-tint` | `#f1f6f3` | Now-open card, active chip, Open all | `--accent` on it 5.9:1 |
+| `--accent-line` | `#d6e6dc` | Borders on tinted elements | |
 | `--scrim` | `#11111133` | Dialog backdrop | |
 | `--shadow-dialog` | `0 1px 2px #1111110d, 0 12px 32px #1111111f` | Dialog only | |
 
@@ -38,10 +40,12 @@ Space on a 4px grid with a 16px page margin. Radius `--r` 8px (buttons, fields, 
 
 ## Components
 
-- **Primary button**: `--accent` fill, white 600 text, 36px, `--r`; hover `--accent-hover`, active `scale(.985)`, shortcut hint at 55% opacity.
-- **Text button**: `--muted`, hover `--text`; Clear all hovers to `--danger`.
-- **Search**: 32px `--subtle` field; on focus it turns white with a 1px `--accent` inset ring.
-- **Menus**: native `<select>` sized to its value (`field-sizing: content`), `--muted`, hover `--subtle`.
-- **Row**: 44px, no borders, `--hover` on hover or focus; open and remove actions fade in.
+- **Now open card**: the current tab in a 12px card with `--accent-tint` ground and `--accent-line` border, a green "Now open" label, a white monogram, and the full-width Save button.
+- **Primary button**: `--accent` fill, white 600 text, 38px, `--r`, download icon; hover `--accent-hover`, active `scale(.985)`, shortcut hint on the right at 65% opacity.
+- **Search**: 34px `--subtle` field; on focus it turns white with a 1px `--accent` inset ring.
+- **Filter chips**: All, Today, 7 days, Older as 26px pills; the active chip uses `--accent-tint`, `--accent-line` and `--accent` text. `aria-pressed` drives the state.
+- **Sort menu**: native `<select>` beside the Shelf heading, sized to its value.
+- **Row**: 46px grid with the monogram, title over site, and the time in its own right-hand column; on hover or focus the time fades and a bordered remove button takes its place.
+- **Bottom bar**: Clear all (muted, red on hover) on the left and Open all as a tinted green button on the right.
 - **Dialog**: 300px, left-aligned title and message, Cancel (`--subtle`) and the action (`--accent`, or `--danger` when destructive) on the right.
-- **Layout budget**: Chrome caps popups at 600px; the list scrolls at 240px.
+- **Layout budget**: Chrome caps popups at 600px; the list scrolls at 198px.
