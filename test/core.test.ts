@@ -35,6 +35,14 @@ describe("domain and boundary validation", () => {
     expect(isRequest({ type: "SAVE_TAB", tabId: 7 })).toBe(true);
     for (const message of [{ type: "SAVE_TAB", tabId: -1 }, { type: "SAVE_TAB", tabId: 1.5 }, { type: "OPEN_TAB", url: "https://evil.com" }, { type: "GET_STATE", extra: 1 }, { type: "__proto__" }, null]) expect(isRequest(message)).toBe(false);
   });
+  it("accepts a bounded list of unique saved IDs, never URLs", () => {
+    expect(isRequest({ type: "OPEN_SELECTED", ids: ["a", "b"] })).toBe(true);
+    for (const message of [
+      { type: "OPEN_SELECTED", ids: [] }, { type: "OPEN_SELECTED", ids: ["a", "a"] }, { type: "OPEN_SELECTED", ids: [1] },
+      { type: "OPEN_SELECTED", ids: Array.from({ length: 21 }, (_, n) => String(n)) }, { type: "OPEN_SELECTED", ids: ["x".repeat(101)] },
+      { type: "OPEN_SELECTED", ids: "a" }, { type: "OPEN_SELECTED", ids: ["a"], urls: ["https://evil.com"] }
+    ]) expect(isRequest(message)).toBe(false);
+  });
   it("accepts only the exact extension popup sender", () => {
     const popup = "chrome-extension://abc/popup/index.html";
     expect(isTrustedSender({ id: "abc", url: popup }, "abc", popup)).toBe(true);
@@ -182,5 +190,14 @@ describe("save and reopen critical paths", () => {
     expect(second).toEqual(first);
     expect(f.browser.openTab).toHaveBeenCalledTimes(20);
     expect(await f.repository.list()).toHaveLength(25);
+  });
+  it("opens selected IDs in order from storage, in the background, and keeps them", async () => {
+    const items = Array.from({ length: 3 }, (_, n) => makeSavedTab({ url: `https://example.com/${n}` }));
+    const f = fixture({ [SHELF_KEY]: { version: 1, items } });
+    const [first, , third] = items;
+    const result = await f.service.dispatch({ type: "OPEN_SELECTED", ids: [third!.id, "missing", first!.id] });
+    expect(result).toEqual({ opened: 2, total: 3, failed: 1 });
+    expect(vi.mocked(f.browser.openTab).mock.calls).toEqual([[third!.url, false], [first!.url, false]]);
+    expect(await f.repository.list()).toHaveLength(3);
   });
 });

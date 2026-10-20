@@ -1,6 +1,8 @@
 import { send } from "./api";
 import { MAX_OPEN_BATCH, SHELF_KEY, displayHost, relativeTime } from "../src/domain";
 import type { AppState, SavedTab } from "../src/domain";
+import { DEFAULT_VIEW, RANGES, SORT_KEYS, applyView, highlight, isFiltered, terms } from "./view";
+import type { Range, SortKey, View } from "./view";
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -15,8 +17,14 @@ const ui = {
   openAll: element<HTMLButtonElement>("open-all"), clear: element<HTMLButtonElement>("clear-all"), more: element<HTMLButtonElement>("show-more"),
   note: element("shelf-note"), shortcut: element("shortcut"), feedback: element("feedback"), status: element("status"), retry: element<HTMLButtonElement>("retry"),
   dialog: element<HTMLDialogElement>("confirm-dialog"), dialogTitle: element("dialog-title"), dialogDescription: element("dialog-description"),
-  confirm: element<HTMLButtonElement>("dialog-confirm"), cancel: element<HTMLButtonElement>("dialog-cancel")
+  confirm: element<HTMLButtonElement>("dialog-confirm"), cancel: element<HTMLButtonElement>("dialog-cancel"),
+  toolbar: element("toolbar"), search: element<HTMLInputElement>("search"), sort: element<HTMLSelectElement>("sort"),
+  ranges: [...document.querySelectorAll<HTMLButtonElement>("[data-range]")],
+  noResults: element("no-results"), noResultsText: element("no-results-text"), clearFilters: element<HTMLButtonElement>("clear-filters")
 };
+/** Search, sort and range only change what the popup shows; the shelf itself is never rewritten. */
+const TOOLS_MIN_ITEMS = 4;
+let view: View = { ...DEFAULT_VIEW };
 let state: AppState | null = null;
 let busy = false;
 let visibleItems = 40;
@@ -30,6 +38,22 @@ function icon(name: "open" | "remove"): SVGSVGElement {
   path.setAttribute("d", name === "open" ? "M14 4h6v6M20 4l-9 9M10 4H4v16h16v-6" : "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5m4-5v5");
   svg.append(path);
   return svg;
+}
+
+function marked(target: HTMLElement, text: string, words: readonly string[]): void {
+  target.replaceChildren(...highlight(text, words).map(segment => {
+    if (!segment.match) return document.createTextNode(segment.text);
+    const mark = document.createElement("mark"); mark.textContent = segment.text; return mark;
+  }));
+}
+
+function groupHeader(host: string, count: number): HTMLLIElement {
+  const header = document.createElement("li");
+  header.className = "group-header"; header.setAttribute("aria-hidden", "true");
+  const name = document.createElement("span"); name.textContent = host;
+  const total = document.createElement("span"); total.className = "group-count"; total.textContent = String(count);
+  header.append(name, total);
+  return header;
 }
 
 function feedback(message: string, error = false, retry = false): void {
@@ -58,7 +82,7 @@ async function act(operation: () => Promise<void>): Promise<void> {
   } finally { busy = false; controls(); }
 }
 
-function createRow(tab: SavedTab, index: number): HTMLLIElement {
+function createRow(tab: SavedTab, index: number, words: readonly string[] = []): HTMLLIElement {
   const item = document.createElement("li");
   item.className = "tab-item";
   const open = document.createElement("button");
@@ -68,9 +92,9 @@ function createRow(tab: SavedTab, index: number): HTMLLIElement {
   monogram.className = "tab-monogram"; monogram.setAttribute("aria-hidden", "true");
   monogram.textContent = displayHost(tab.url).charAt(0).toUpperCase();
   const copy = document.createElement("span"); copy.className = "tab-copy";
-  const title = document.createElement("span"); title.className = "tab-title"; title.textContent = tab.title;
+  const title = document.createElement("span"); title.className = "tab-title"; marked(title, tab.title, words);
   const meta = document.createElement("span"); meta.className = "tab-meta";
-  const host = document.createElement("span"); host.className = "tab-host"; host.textContent = displayHost(tab.url);
+  const host = document.createElement("span"); host.className = "tab-host"; marked(host, displayHost(tab.url), words);
   const time = document.createElement("span"); time.className = "tab-time"; time.textContent = `· ${relativeTime(tab.savedAt)}`;
   meta.append(host, time); copy.append(title, meta);
   const openIcon = icon("open"); openIcon.classList.add("open-icon");
@@ -104,13 +128,33 @@ function render(): void {
   ui.host.textContent = tab?.url ? displayHost(tab.url) : "Open a regular web page";
   ui.monogram.textContent = tab?.url ? displayHost(tab.url).charAt(0).toUpperCase() : "—";
   ui.hint.textContent = tab?.saveable ? "It stays here until you’re ready." : tab?.reason || "Open a regular web page to get started.";
-  ui.count.textContent = String(state.items.length); ui.count.setAttribute("aria-label", `${state.items.length} saved tabs`);
-  ui.openAll.textContent = state.items.length > MAX_OPEN_BATCH ? "Open 20 newest" : "Open all";
-  ui.empty.hidden = state.items.length > 0;
-  ui.list.replaceChildren(...state.items.slice(0, visibleItems).map(createRow));
-  ui.more.hidden = visibleItems >= state.items.length; ui.more.textContent = `Show ${Math.min(40, state.items.length - visibleItems)} more tabs`;
-  ui.shortcut.textContent = state.shortcut === "Not assigned" ? "Assign a shortcut in Chrome" : `${state.shortcut} to save`;
-  ui.shortcut.title = "Manage shortcuts at chrome://extensions/shortcuts";
+  const total = state.items.length;
+  const filtered = isFiltered(view);
+  const shown = applyView(state.items, view);
+  const words = terms(view.query);
+  ui.toolbar.hidden = total < TOOLS_MIN_ITEMS && !filtered;
+  ui.count.textContent = filtered ? `${shown.length} of ${total}` : String(total);
+  ui.count.setAttribute("aria-label", filtered ? `${shown.length} of ${total} saved tabs shown` : `${total} saved tabs`);
+  const selectable = Math.min(shown.length, MAX_OPEN_BATCH);
+  ui.openAll.textContent = filtered ? `Open ${selectable} ${selectable === 1 ? "result" : "results"}` : total > MAX_OPEN_BATCH ? "Open 20 newest" : "Open all";
+  ui.openAll.hidden = filtered && shown.length === 0;
+  ui.empty.hidden = total > 0;
+  ui.noResults.hidden = total === 0 || shown.length > 0;
+  ui.noResultsText.textContent = view.query.trim() ? `No saved tabs match “${view.query.trim()}”.` : "Nothing saved in this range.";
+  const visible = shown.slice(0, visibleItems);
+  const rows: HTMLLIElement[] = [];
+  const perHost = new Map<string, number>();
+  if (view.sort === "site") for (const tab of shown) { const key = displayHost(tab.url); perHost.set(key, (perHost.get(key) ?? 0) + 1); }
+  visible.forEach((tab, index) => {
+    const key = displayHost(tab.url);
+    if (view.sort === "site" && (index === 0 || displayHost(visible[index - 1]?.url ?? "") !== key)) rows.push(groupHeader(key, perHost.get(key) ?? 0));
+    rows.push(createRow(tab, index, words));
+  });
+  ui.list.replaceChildren(...rows);
+  ui.more.hidden = visibleItems >= shown.length; ui.more.textContent = `Show ${Math.min(40, shown.length - visibleItems)} more tabs`;
+  const assigned = state.shortcut !== "Not assigned";
+  ui.shortcut.textContent = assigned ? state.shortcut : ""; ui.shortcut.hidden = !assigned;
+  ui.save.title = assigned ? `Save and close this tab (${state.shortcut})` : "Assign a shortcut at chrome://extensions/shortcuts";
   ui.note.textContent = state.items.length > 0 ? "Reopening keeps your saved page here." : "Your future self will thank you.";
   controls();
 }
@@ -155,6 +199,18 @@ ui.save.addEventListener("click", () => void act(async () => {
 }));
 ui.openAll.addEventListener("click", async () => {
   if (busy || !state?.items.length || ui.dialog.open) return;
+  if (isFiltered(view)) {
+    const shown = applyView(state.items, view);
+    const ids = shown.slice(0, MAX_OPEN_BATCH).map(tab => tab.id);
+    if (!ids.length) return;
+    const noun = ids.length === 1 ? "tab" : "tabs";
+    if (!await confirm(`Open ${ids.length} matching ${noun}?`, shown.length > MAX_OPEN_BATCH ? `Only the first 20 of ${shown.length} results, in the current order, will open. Your shelf stays unchanged.` : "They open in the background and stay saved on your shelf.", `Open ${ids.length} ${noun}`)) return;
+    void act(async () => {
+      const result = await send("OPEN_SELECTED", { ids });
+      feedback(`Opened ${result.opened} ${result.opened === 1 ? "tab" : "tabs"}.${result.failed ? ` ${result.failed} could not be opened. All pages remain saved.` : " All pages remain saved."}`, result.failed > 0);
+    });
+    return;
+  }
   const count = Math.min(state.items.length, MAX_OPEN_BATCH);
   if (!await confirm(`Open ${count} saved ${count === 1 ? "tab" : "tabs"}?`, state.items.length > MAX_OPEN_BATCH ? "Only the 20 newest pages will open. Your shelf stays unchanged." : "Your pages will open in the background. They stay saved on your shelf.", `Open ${count} ${count === 1 ? "tab" : "tabs"}`)) return;
   void act(async () => {
@@ -173,6 +229,33 @@ ui.clear.addEventListener("click", async () => {
 });
 ui.retry.addEventListener("click", () => { feedback(""); ui.loading.hidden = state !== null; void refresh(); });
 ui.more.addEventListener("click", () => { visibleItems += 40; render(); });
+
+function setView(next: Partial<View>): void {
+  view = { ...view, ...next };
+  visibleItems = 40;
+  ui.ranges.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.range === view.range)));
+  render();
+}
+ui.search.addEventListener("input", () => setView({ query: ui.search.value }));
+ui.search.addEventListener("keydown", event => {
+  if (event.key !== "Escape" || !ui.search.value) return;
+  event.preventDefault(); event.stopPropagation();
+  ui.search.value = ""; setView({ query: "" });
+});
+ui.sort.addEventListener("change", () => {
+  const sort = SORT_KEYS.find(key => key === ui.sort.value) ?? DEFAULT_VIEW.sort;
+  setView({ sort: sort satisfies SortKey });
+});
+ui.ranges.forEach(button => button.addEventListener("click", () => {
+  const range = RANGES.find(key => key === button.dataset.range) ?? DEFAULT_VIEW.range;
+  setView({ range: range satisfies Range });
+}));
+ui.clearFilters.addEventListener("click", () => { ui.search.value = ""; setView({ query: "", range: "all" }); ui.search.focus(); });
+document.addEventListener("keydown", event => {
+  const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement;
+  if (event.key !== "/" || typing || ui.toolbar.hidden || ui.dialog.open || event.metaKey || event.ctrlKey || event.altKey) return;
+  event.preventDefault(); ui.search.focus();
+});
 if (typeof chrome !== "undefined" && chrome.storage?.onChanged) {
   chrome.storage.onChanged.addListener((changes, area) => { if (area === "local" && changes[SHELF_KEY]) void refresh(); });
 }

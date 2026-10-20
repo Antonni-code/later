@@ -23,6 +23,7 @@ async function prepare(items = [item()], options: { saveable?: boolean; failed?:
     if (request.type === "GET_STATE") return options.failed ? { ok: false, error: { code: "INVALID_STORAGE", message: "Your shelf could not be read. Nothing was changed." } } : { ok: true, data: structuredClone(state) };
     if (request.type === "REMOVE_TAB") { state.items = state.items.filter(row => row.id !== request.id); return { ok: true, data: [...state.items] }; }
     if (request.type === "CLEAR_SHELF") { state.items = []; return { ok: true, data: [] }; }
+    if (request.type === "OPEN_SELECTED") return { ok: true, data: { opened: request.ids.length, total: request.ids.length, failed: 0 } };
     if (request.type === "OPEN_BATCH") return { ok: true, data: { opened: Math.min(20, state.items.length), total: state.items.length, failed: 0 } };
     if (request.type === "SAVE_TAB") { const saved = item(99); state.items.unshift(saved); return { ok: true, data: { item: saved, closed: false } }; }
     return { ok: true, data: { opened: 1 } };
@@ -117,5 +118,72 @@ describe("popup user journey", () => {
     expect(open.disabled).toBe(true);
     finish?.({ ok: true, data: { opened: 1 } });
     await vi.waitFor(() => expect(open.disabled).toBe(false));
+  });
+});
+
+describe("finding pages on a full shelf", () => {
+  const shelf = () => [
+    { id: "a", title: "Designing calm tools", url: "https://read.cv/a", savedAt: new Date().toISOString() },
+    { id: "b", title: "Weekend reading", url: "https://news.example/b", savedAt: new Date(Date.now() - 864e5 * 10).toISOString() },
+    { id: "c", title: "A design system", url: "https://github.com/c", savedAt: new Date(Date.now() - 36e5).toISOString() },
+    { id: "d", title: "Release notes", url: "https://github.com/d", savedAt: new Date(Date.now() - 72e5).toISOString() }
+  ];
+  function type(value: string) {
+    const search = document.getElementById("search") as HTMLInputElement;
+    search.value = value; search.dispatchEvent(new Event("input"));
+    return search;
+  }
+
+  it("hides the tools on a small shelf", async () => {
+    await prepare([item(1), item(2)]);
+    expect(document.getElementById("toolbar")?.hidden).toBe(true);
+  });
+  it("filters as you type, marks matches as text, and counts results", async () => {
+    await prepare(shelf());
+    expect(document.getElementById("toolbar")?.hidden).toBe(false);
+    type("design");
+    expect(text("count")).toBe("2 of 4");
+    expect([...document.querySelectorAll(".tab-title")].map(node => node.textContent)).toEqual(["Designing calm tools", "A design system"]);
+    expect([...document.querySelectorAll("mark")].map(node => node.textContent)).toEqual(["Design", "design"]);
+    expect(text("open-all")).toBe("Open 2 results");
+  });
+  it("explains an empty result and clears filters", async () => {
+    await prepare(shelf());
+    type("zzz");
+    expect(document.getElementById("no-results")?.hidden).toBe(false);
+    expect(text("no-results-text")).toContain("zzz");
+    expect(button("open-all").hidden).toBe(true);
+    expect(document.getElementById("empty-state")?.hidden).toBe(true);
+    button("clear-filters").click();
+    expect(text("count")).toBe("4");
+    expect(document.querySelectorAll(".tab-item")).toHaveLength(4);
+  });
+  it("clears the search with Escape and focuses it with slash", async () => {
+    await prepare(shelf());
+    const search = type("notes");
+    search.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    expect(search.value).toBe(""); expect(text("count")).toBe("4");
+    search.blur();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "/", bubbles: true, cancelable: true }));
+    expect(document.activeElement).toBe(search);
+  });
+  it("groups by site and filters by saved date", async () => {
+    await prepare(shelf());
+    const sort = document.getElementById("sort") as HTMLSelectElement;
+    sort.value = "site"; sort.dispatchEvent(new Event("change"));
+    expect([...document.querySelectorAll(".group-header")].map(node => node.textContent)).toEqual(["github.com2", "news.example1", "read.cv1"]);
+    (document.querySelector("[data-range=older]") as HTMLButtonElement).click();
+    expect(text("count")).toBe("1 of 4");
+    expect(document.querySelector("[data-range=older]")?.getAttribute("aria-pressed")).toBe("true");
+  });
+  it("opens only the visible results by ID after confirming", async () => {
+    const f = await prepare(shelf());
+    type("github");
+    button("open-all").click();
+    expect(text("dialog-title")).toBe("Open 2 matching tabs?");
+    button("dialog-confirm").click();
+    await vi.waitFor(() => expect(text("status")).toContain("Opened 2 tabs"));
+    expect(f.sendMessage).toHaveBeenCalledWith({ type: "OPEN_SELECTED", ids: ["c", "d"] });
+    expect(f.sendMessage.mock.calls.some(([request]) => request.type === "OPEN_BATCH")).toBe(false);
   });
 });

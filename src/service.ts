@@ -22,6 +22,7 @@ export interface BrowserPort {
 export class ShelfService {
   private saves = new Map<number, Promise<Results["SAVE_TAB"]>>();
   private batch: Promise<Results["OPEN_BATCH"]> | undefined;
+  private selection: Promise<Results["OPEN_SELECTED"]> | undefined;
 
   constructor(private readonly repository: ShelfRepository, private readonly browser: BrowserPort) {}
 
@@ -83,6 +84,25 @@ export class ShelfService {
     return { opened, failed, total: items.length };
   }
 
+  /** Opens saved pages by ID in the given order. IDs only: URLs always come from storage. */
+  openSelected(ids: readonly string[]): Promise<Results["OPEN_SELECTED"]> {
+    if (this.selection) return this.selection;
+    this.selection = this.openSelectedOnce(ids.slice(0, MAX_OPEN_BATCH)).finally(() => { this.selection = undefined; });
+    return this.selection;
+  }
+
+  private async openSelectedOnce(ids: readonly string[]): Promise<Results["OPEN_SELECTED"]> {
+    const byId = new Map((await this.repository.list()).map(item => [item.id, item]));
+    let opened = 0;
+    let failed = 0;
+    for (const id of ids) {
+      const item = byId.get(id);
+      if (!item) { failed++; continue; }
+      try { await this.browser.openTab(item.url, false); opened++; } catch { failed++; }
+    }
+    return { opened, failed, total: ids.length };
+  }
+
   async dispatch(request: Request): Promise<Results[keyof Results]> {
     switch (request.type) {
       case "GET_STATE": {
@@ -94,6 +114,7 @@ export class ShelfService {
       case "REMOVE_TAB": return this.repository.remove(request.id);
       case "CLEAR_SHELF": return this.repository.clear();
       case "OPEN_BATCH": return this.openBatch();
+      case "OPEN_SELECTED": return this.openSelected(request.ids);
     }
   }
 }

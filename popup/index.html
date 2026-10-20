@@ -12,16 +12,16 @@
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M10 8v14h12" stroke="#faf7ef" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="22" cy="10.5" r="2.5" fill="#dda457"/></svg>
       <span class="wordmark">Later<span class="brand-dot">.</span></span>
     </a>
-    <kbd id="shortcut" class="shortcut">Checking shortcut…</kbd>
+    <span class="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>Stays on this device</span>
   </header>
 
   <section class="current-card" aria-label="Current tab">
-    <p class="eyebrow">Current tab</p>
+    <p class="eyebrow visually-hidden">Current tab</p>
     <div class="current-preview">
       <span class="page-monogram" id="current-monogram" aria-hidden="true"></span>
       <div class="current-copy"><strong id="current-title">Getting your current tab…</strong><span id="current-host">Just a moment</span></div>
     </div>
-    <button id="save-current" class="save-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v7h14v-7M12 4v10m-4-4 4 4 4-4"/></svg><span id="save-label">Save &amp; close tab</span></button>
+    <button id="save-current" class="save-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12v7h14v-7M12 4v10m-4-4 4 4 4-4"/></svg><span id="save-label">Save &amp; close tab</span><kbd id="shortcut" class="shortcut" aria-hidden="true" hidden></kbd></button>
     <p class="current-hint" id="current-hint">It stays here until you’re ready.</p>
   </section>
 
@@ -32,17 +32,37 @@
       <h2 id="saved-heading" tabindex="-1">Your shelf <span id="count" class="count"></span></h2>
       <button id="open-all" class="text-button" type="button" disabled>Open all</button>
     </div>
+    <div id="toolbar" class="toolbar" hidden>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>
+        <input id="search" type="search" placeholder="Search title or site" aria-label="Search saved tabs" aria-controls="saved-tabs" autocomplete="off" spellcheck="false" maxlength="100" />
+        <kbd aria-hidden="true">/</kbd>
+      </label>
+      <div class="view-row">
+        <div class="segmented" role="group" aria-label="Saved">
+          <button type="button" data-range="all" aria-pressed="true">All</button>
+          <button type="button" data-range="today" aria-pressed="false">Today</button>
+          <button type="button" data-range="week" aria-pressed="false">7 days</button>
+          <button type="button" data-range="older" aria-pressed="false">Older</button>
+        </div>
+        <label class="sort">
+          <span class="visually-hidden">Sort by</span>
+          <select id="sort" aria-controls="saved-tabs"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="title">Title A–Z</option><option value="site">Site</option></select>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>
+        </label>
+      </div>
+    </div>
     <div id="loading-state" class="loading-state" role="status" aria-label="Loading your shelf"><span></span><span></span><span></span></div>
     <ul id="saved-tabs" class="tab-list" aria-label="Saved tabs"></ul>
     <div id="empty-state" class="empty-state" hidden>
       <h3>Make room for what’s next.</h3>
       <p>Save a tab, close the noise. Your page will be waiting right here.</p>
     </div>
+    <div id="no-results" class="no-results" hidden><p id="no-results-text">No saved tabs match.</p><button id="clear-filters" class="text-button" type="button">Clear filters</button></div>
     <button id="show-more" class="show-more" type="button" hidden>Show more saved tabs</button>
     <div class="shelf-bottom"><span id="shelf-note">Saved pages stay on your shelf after reopening.</span><button id="clear-all" class="text-button clear-button" type="button" disabled>Clear shelf</button></div>
   </section>
 
-  <footer><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg><span>Private by default. No account, no cloud.</span></footer>
 </main>
 <dialog id="confirm-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description"><h2 id="dialog-title"></h2><p id="dialog-description"></p><div class="dialog-actions"><button id="dialog-cancel" class="secondary-button" type="button" autofocus>Cancel</button><button id="dialog-confirm" class="confirm-button" type="button">Confirm</button></div></dialog>
 <script type="module" src="popup.ts"></script>
