@@ -172,9 +172,10 @@ describe("finding pages on a full shelf", () => {
     const sort = document.getElementById("sort") as HTMLSelectElement;
     sort.value = "site"; sort.dispatchEvent(new Event("change"));
     expect([...document.querySelectorAll(".group-header")].map(node => node.textContent)).toEqual(["github.com2", "news.example1", "read.cv1"]);
-    (document.querySelector("[data-range=older]") as HTMLButtonElement).click();
+    const range = document.getElementById("range") as HTMLSelectElement;
+    range.value = "older"; range.dispatchEvent(new Event("change"));
     expect(text("count")).toBe("1 of 4");
-    expect(document.querySelector("[data-range=older]")?.getAttribute("aria-pressed")).toBe("true");
+    expect(range.value).toBe("older");
   });
   it("opens only the visible results by ID after confirming", async () => {
     const f = await prepare(shelf());
