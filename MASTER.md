@@ -8,7 +8,7 @@ Single source of truth for the popup's visual layer. Every colour, size, radius 
 
 **Interaction.** Fast and dry: 120 to 220ms on `cubic-bezier(.2, .8, .2, 1)`. Rows tint on hover and their actions brighten; buttons press to `scale(.98)`; feedback and the confirm dialog fade in 4px. Search filters as you type, `/` focuses it and Escape clears it. No bounce, glow, gradient, blur or looping animation. `prefers-reduced-motion` turns every transition and entry off.
 
-**Allowed patterns:** hairline rules under the header, around the current-tab panel and above the footer; a keyboard-shortcut chip; amber `<mark>` on search matches; sticky site headers when sorted by site; the pine logo tile kept from the original brand.
+**Allowed patterns:** hairline rules under the header, around the current-tab panel and above the shelf actions; a keyboard-shortcut chip inside the Save button; a lock-icon privacy note in the header; amber `<mark>` on search matches; sticky site headers when sorted by site; the pine logo tile kept from the original brand.
 
 ## Colour
 
@@ -21,15 +21,16 @@ Light only (`color-scheme: light`). Contrast is computed against `--bg` unless s
 | `--surface-2` | `#efefec` | Row hover, text-button hover | |
 | `--surface-3` | `#e6e6e2` | Monograms, pressed | |
 | `--line` | `#ececea` | Hairlines, chip and panel borders | |
-| `--line-strong` | `#d4d4cf` | Secondary button border, field focus border | |
+| `--line-strong` | `#d4d4cf` | Secondary button border | |
 | `--text` | `#18191a` | Titles, body | 17.6:1 |
 | `--text-2` | `#55575b` | Hosts, secondary copy | 7.2:1 |
 | `--text-3` | `#6b6d71` | Timestamps, hints, notes | 5.2:1, 4.5:1 on `--surface-2` |
-| `--primary` | `#20372b` | Primary fill, focus ring | 12.8:1 |
+| `--primary` | `#20372b` | Primary fill, focus ring, search focus border | 12.8:1 |
 | `--primary-hover` | `#2c4a3a` | Primary hover | |
 | `--primary-press` | `#182a21` | Primary active | |
 | `--on-primary` | `#ffffff` | Text on primary | 12.8:1 on `--primary` |
 | `--primary-soft` | `#20372b0f` | Success feedback ground | |
+| `--on-primary-soft` | `#ffffff1f` | Shortcut chip inside the primary button | |
 | `--amber` | `#c9842b` | Brand dot only | |
 | `--mark` | `#f8e3bd` | Search-match highlight ground | `--text` on it 14.0:1 |
 | `--danger` | `#b42318` | Destructive text and fill | 6.6:1 |
@@ -72,12 +73,13 @@ Only `opacity`, `transform`, `color`, `border-color` and `background-color` anim
 
 ## Components
 
-- **Primary button**: pine fill, white text, 40px tall, `--r`. Hover `--primary-hover`, active `--primary-press` + `scale(.98)`, focus 2px `--primary` outline offset 2px, disabled 40% opacity.
+- **Primary button**: pine fill, white text, 40px tall, `--r`, icon and label left, the assigned shortcut as an `--on-primary-soft` chip on the right (hidden when none is assigned). Hover `--primary-hover`, active `--primary-press` + `scale(.98)`, focus 2px `--primary` outline offset 2px, disabled 40% opacity.
 - **Text button**: transparent, `--text-2`, 28px tall. Hover `--surface-2` + `--text`. Destructive variant hovers to `--danger-soft` + `--danger`.
 - **Secondary button**: `--bg`, `--line-strong` border, `--text`.
-- **Search field**: 32px, `--surface-1`, transparent border that turns `--line-strong` on focus-within; `/` chip at the end.
+- **Search field**: 32px, `--surface-1`, transparent border that turns `--primary` on focus-within (its focus indicator); `/` chip at the end.
 - **Segmented control**: `--surface-1` track, `--bg` active segment with `--text`, inactive `--text-2`; `aria-pressed` drives the state.
 - **Sort select**: native `<select>`, `--text-2`, transparent ground, hover `--surface-2`.
+- **Layout budget**: Chrome caps popups at 600px, so the list shows 4.5 rows (216px) and scrolls; the header carries the privacy note instead of a footer.
 - **Row**: 48px minimum, no borders, `--r` hover tint. Actions sit at 55% opacity and reach 100% on row hover or focus-within. Search matches wrap in `<mark>`.
 - **Site header** (site sort only): sticky, `--bg`, `--fs-xs` `--text-3` host plus count.
 - **Monogram**: 24px (row) or 32px (current tab), `--r-sm`, `--text-2` initial.
