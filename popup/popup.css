@@ -1,12 +1,13 @@
 /* Tokens: see MASTER.md. No value below should exist outside this block. */
 :root {
-  color-scheme: dark;
-  --bg: #121314; --surface-1: #1a1b1d; --surface-2: #222326; --surface-3: #2b2c30;
-  --line: #2a2b2f; --line-strong: #3a3b40;
-  --text: #ecebe6; --text-2: #a3a29b; --text-3: #908f88;
-  --amber: #e3a54a; --amber-hover: #ecb563; --amber-press: #d4963c; --on-amber: #1a1205; --amber-soft: #e3a54a1f;
-  --danger: #ef7a66; --danger-soft: #ef7a661f; --on-danger: #1d0b07;
-  --brand-pine: #20372b; --scrim: #000000a3;
+  color-scheme: light;
+  --bg: #ffffff; --surface-1: #f6f6f4; --surface-2: #efefec; --surface-3: #e6e6e2;
+  --line: #ececea; --line-strong: #d4d4cf;
+  --text: #18191a; --text-2: #55575b; --text-3: #6b6d71;
+  --primary: #20372b; --primary-hover: #2c4a3a; --primary-press: #182a21; --on-primary: #ffffff; --primary-soft: #20372b0f;
+  --amber: #c9842b; --mark: #f8e3bd;
+  --danger: #b42318; --danger-hover: #9a1d13; --danger-soft: #fdeceb; --on-danger: #ffffff;
+  --brand-pine: #20372b; --scrim: #18191a52; --shadow-pop: 0 1px 2px #18191a0f, 0 8px 24px #18191a14;
   --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-lg: 15px;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
   --r: 6px; --r-sm: 4px;
@@ -19,7 +20,7 @@ body { width: 380px; margin: 0; font-size: var(--fs-sm); line-height: 18px; back
 button, a { -webkit-tap-highlight-color: transparent; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; opacity: .4; }
-button:focus-visible, a:focus-visible, h2:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button:focus-visible, a:focus-visible, h2:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 [hidden] { display: none !important; }
 svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -31,23 +32,23 @@ svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; s
 .brand-mark { width: 22px; height: 22px; stroke: none; color: var(--brand-pine); }
 .wordmark { font-size: var(--fs-lg); line-height: 20px; font-weight: 600; letter-spacing: -.01em; }
 .brand-dot { color: var(--amber); }
-.shortcut { padding: 2px var(--s2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface-1); color: var(--text-2); font-family: inherit; font-size: var(--fs-xs); line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.shortcut { padding: 2px var(--s2); border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-1); color: var(--text-2); font-family: inherit; font-size: var(--fs-xs); line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* Current tab */
-.current-card { margin-top: var(--s4); padding: var(--s3); border-radius: var(--r); background: var(--surface-1); }
+.current-card { margin-top: var(--s4); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-1); }
 .eyebrow { margin: 0 0 var(--s2); color: var(--text-3); font-size: var(--fs-xs); line-height: 16px; font-weight: 500; }
 .current-preview { display: flex; align-items: center; gap: var(--s3); min-height: 36px; margin-bottom: var(--s3); }
-.page-monogram { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 32px; border-radius: var(--r-sm); background: var(--surface-3); color: var(--text-2); font-size: var(--fs-md); font-weight: 600; }
+.page-monogram { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 32px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text-2); font-size: var(--fs-md); font-weight: 600; }
 .current-copy { min-width: 0; display: flex; flex-direction: column; }
 .current-copy strong { font-size: var(--fs-md); line-height: 18px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .current-copy > span { color: var(--text-2); font-size: var(--fs-xs); line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .save-button {
   display: flex; align-items: center; justify-content: center; gap: var(--s2); width: 100%; min-height: 40px; padding: 0 var(--s3);
-  border: 0; border-radius: var(--r); background: var(--amber); color: var(--on-amber); font-size: var(--fs-md); font-weight: 600;
+  border: 0; border-radius: var(--r); background: var(--primary); color: var(--on-primary); font-size: var(--fs-md); font-weight: 600;
   transition: background-color var(--dur-fast) var(--ease), transform var(--dur) var(--ease);
 }
-.save-button:hover:not(:disabled) { background: var(--amber-hover); }
-.save-button:active:not(:disabled) { background: var(--amber-press); transform: scale(.98); }
+.save-button:hover:not(:disabled) { background: var(--primary-hover); }
+.save-button:active:not(:disabled) { background: var(--primary-press); transform: scale(.98); }
 .save-button:focus-visible { outline-offset: 3px; }
 .save-button svg { stroke-width: 2; }
 .current-hint { margin: var(--s2) 0 0; color: var(--text-3); font-size: var(--fs-xs); line-height: 16px; text-align: center; }
@@ -55,7 +56,7 @@ svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; s
 /* Feedback */
 .feedback {
   display: flex; align-items: center; gap: var(--s2); margin-top: var(--s3); padding: var(--s2) var(--s3); border-radius: var(--r);
-  background: var(--amber-soft); color: var(--text);
+  background: var(--primary-soft); color: var(--text);
   transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
   @starting-style { opacity: 0; transform: translateY(4px); }
 }
@@ -114,7 +115,7 @@ footer svg { width: 13px; height: 13px; stroke-width: 1.6; }
 
 /* Confirm dialog */
 dialog {
-  width: 320px; padding: var(--s5); border: 1px solid var(--line-strong); border-radius: var(--r); background: var(--surface-1); color: var(--text);
+  width: 320px; padding: var(--s5); border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: var(--text); box-shadow: var(--shadow-pop);
   transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
 }
 dialog[open] { @starting-style { opacity: 0; transform: translateY(4px); } }
@@ -128,9 +129,10 @@ dialog p { margin: var(--s2) 0 var(--s5); color: var(--text-2); font-size: var(-
 }
 .secondary-button { border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text); }
 .secondary-button:hover { background: var(--surface-3); }
-.confirm-button { border: 0; background: var(--amber); color: var(--on-amber); }
-.confirm-button:hover { background: var(--amber-hover); }
+.confirm-button { border: 0; background: var(--primary); color: var(--on-primary); }
+.confirm-button:hover { background: var(--primary-hover); }
 .confirm-button.destructive { background: var(--danger); color: var(--on-danger); }
+.confirm-button.destructive:hover { background: var(--danger-hover); }
 .secondary-button:active, .confirm-button:active { transform: scale(.98); }
 
 @media (prefers-reduced-motion: reduce) {
