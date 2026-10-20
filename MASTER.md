@@ -34,6 +34,7 @@ Dark only (`color-scheme: dark`). Contrast is computed against `--bg` unless sta
 | `--danger-soft` | `#ef7a661f` | Error feedback ground, remove hover | |
 | `--on-danger` | `#1d0b07` | Text on danger fill | 6.9:1 on `--danger` |
 | `--brand-pine` | `#20372b` | Logo tile only (unchanged brand asset) | |
+| `--scrim` | `#000000a3` | Dialog backdrop | |
 
 ## Type
 
