@@ -19,7 +19,7 @@ const ui = {
   dialog: element<HTMLDialogElement>("confirm-dialog"), dialogTitle: element("dialog-title"), dialogDescription: element("dialog-description"),
   confirm: element<HTMLButtonElement>("dialog-confirm"), cancel: element<HTMLButtonElement>("dialog-cancel"),
   toolbar: element("toolbar"), search: element<HTMLInputElement>("search"), sort: element<HTMLSelectElement>("sort"),
-  ranges: [...document.querySelectorAll<HTMLButtonElement>("[data-range]")],
+  rangeTrack: element("ranges"), ranges: [...document.querySelectorAll<HTMLButtonElement>("[data-range]")],
   noResults: element("no-results"), noResultsText: element("no-results-text"), clearFilters: element<HTMLButtonElement>("clear-filters")
 };
 /** Search, sort and range only change what the popup shows; the shelf itself is never rewritten. */
@@ -38,6 +38,13 @@ function icon(name: "open" | "remove"): SVGSVGElement {
   path.setAttribute("d", name === "open" ? "M14 4h6v6M20 4l-9 9M10 4H4v16h16v-6" : "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5m4-5v5");
   svg.append(path);
   return svg;
+}
+
+/** One of six monogram tints, stable per site, so a long shelf can be scanned by colour. */
+function tint(host: string): string {
+  let hash = 0;
+  for (const char of host) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return String(hash % 6);
 }
 
 function marked(target: HTMLElement, text: string, words: readonly string[]): void {
@@ -90,7 +97,7 @@ function createRow(tab: SavedTab, index: number, words: readonly string[] = []):
   open.setAttribute("aria-label", `Reopen ${tab.title}`);
   const monogram = document.createElement("span");
   monogram.className = "tab-monogram"; monogram.setAttribute("aria-hidden", "true");
-  monogram.textContent = displayHost(tab.url).charAt(0).toUpperCase();
+  monogram.textContent = displayHost(tab.url).charAt(0).toUpperCase(); monogram.dataset.tint = tint(displayHost(tab.url));
   const copy = document.createElement("span"); copy.className = "tab-copy";
   const title = document.createElement("span"); title.className = "tab-title"; marked(title, tab.title, words);
   const meta = document.createElement("span"); meta.className = "tab-meta";
@@ -127,6 +134,7 @@ function render(): void {
   ui.title.textContent = tab?.title || "No current page"; ui.title.title = tab?.title || "";
   ui.host.textContent = tab?.url ? displayHost(tab.url) : "Open a regular web page";
   ui.monogram.textContent = tab?.url ? displayHost(tab.url).charAt(0).toUpperCase() : "—";
+  if (tab?.url) ui.monogram.dataset.tint = tint(displayHost(tab.url)); else delete ui.monogram.dataset.tint;
   ui.hint.textContent = tab?.saveable ? "It stays here until you’re ready." : tab?.reason || "Open a regular web page to get started.";
   const total = state.items.length;
   const filtered = isFiltered(view);
@@ -234,6 +242,7 @@ function setView(next: Partial<View>): void {
   view = { ...view, ...next };
   visibleItems = 40;
   ui.ranges.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.range === view.range)));
+  ui.rangeTrack.dataset.active = view.range;
   render();
 }
 ui.search.addEventListener("input", () => setView({ query: ui.search.value }));

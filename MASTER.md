@@ -4,82 +4,81 @@ Single source of truth for the popup's visual layer. Every colour, size, radius 
 
 ## Theses
 
-**Visual.** A light, neutral-white popup (white, not paper) with the logo's pine green as the one primary colour: the Save & close button, confirm actions and the focus ring. Amber appears only as the brand dot and the search-match highlight. One system sans throughout, because the extension loads nothing remote. Dense rows, 6px corners, surfaces separated by tone and single hairlines; the only shadow belongs to the confirm dialog.
+**Visual.** Later should feel like a first-party macOS utility. A soft grey canvas (`#f5f5f7`) holds white, 12px-rounded grouped panels with no borders; rows inside a panel are divided by hairline separators inset to the text, as in macOS and iOS grouped lists. One system font (SF Pro on Apple devices, Segoe UI on Windows), set with Apple's label hierarchy: near-black labels, one grey secondary, one link blue for interactive text. The single primary action, Save & close, is a near-black pill. Saved sites get rounded-square monograms in six soft tints so a long shelf can be scanned by colour. Light only.
 
-**Interaction.** Fast and dry: 120 to 220ms on `cubic-bezier(.2, .8, .2, 1)`. Rows tint on hover and their actions brighten; buttons press to `scale(.98)`; feedback and the confirm dialog fade in 4px. Search filters as you type, `/` focuses it and Escape clears it. No bounce, glow, gradient, blur or looping animation. `prefers-reduced-motion` turns every transition and entry off.
+**Interaction.** Calm and physical: hovers and colour changes in 150ms, the segmented control's white thumb slides between options in 280ms on the iOS curve `cubic-bezier(.32, .72, 0, 1)`, buttons press to `scale(.97)`, feedback and the alert rise 6px into place. Search filters as you type, `/` focuses it and Escape clears it. No bounce, glow, gradient or looping animation. `prefers-reduced-motion` turns every transition and entry off.
 
-**Allowed patterns:** hairline rules under the header, around the current-tab panel and above the shelf actions; a keyboard-shortcut chip inside the Save button; a lock-icon privacy note in the header; amber `<mark>` on search matches; sticky site headers when sorted by site; the pine logo tile kept from the original brand.
+**Allowed patterns:** white grouped panels on a grey canvas; inset hairline separators between rows; a sliding segmented-control thumb with Apple's two-layer shadow; tinted monograms keyed to the site name; a keyboard-shortcut chip inside the Save pill; an Apple-style alert with split buttons; a soft yellow `<mark>` on search matches; the pine logo tile kept from the original brand.
 
 ## Colour
 
-Light only (`color-scheme: light`). Contrast is computed against `--bg` unless stated.
+Light only (`color-scheme: light`). Contrast is computed on white unless stated.
 
 | Token | Value | Use | Contrast |
 | --- | --- | --- | --- |
-| `--bg` | `#ffffff` | Popup ground, dialog | |
-| `--surface-1` | `#f6f6f4` | Current-tab panel, search field, segmented track | |
-| `--surface-2` | `#efefec` | Row hover, text-button hover | |
-| `--surface-3` | `#e6e6e2` | Monograms, pressed | |
-| `--line` | `#ececea` | Hairlines, chip and panel borders | |
-| `--line-strong` | `#d4d4cf` | Secondary button border | |
-| `--text` | `#18191a` | Titles, body | 17.6:1 |
-| `--text-2` | `#55575b` | Hosts, secondary copy | 7.2:1 |
-| `--text-3` | `#6b6d71` | Timestamps, hints, notes | 5.2:1, 4.5:1 on `--surface-2` |
-| `--primary` | `#20372b` | Primary fill, focus ring, search focus border | 12.8:1 |
-| `--primary-hover` | `#2c4a3a` | Primary hover | |
-| `--primary-press` | `#182a21` | Primary active | |
-| `--on-primary` | `#ffffff` | Text on primary | 12.8:1 on `--primary` |
-| `--primary-soft` | `#20372b0f` | Success feedback ground | |
-| `--on-primary-soft` | `#ffffff1f` | Shortcut chip inside the primary button | |
-| `--amber` | `#c9842b` | Brand dot only | |
-| `--mark` | `#f8e3bd` | Search-match highlight ground | `--text` on it 14.0:1 |
-| `--danger` | `#b42318` | Destructive text and fill | 6.6:1 |
-| `--danger-hover` | `#9a1d13` | Destructive fill hover | |
-| `--danger-soft` | `#fdeceb` | Error feedback ground, remove hover | `--danger` on it 5.8:1 |
-| `--on-danger` | `#ffffff` | Text on danger fill | |
-| `--brand-pine` | `#20372b` | Logo tile (unchanged brand asset) | |
-| `--scrim` | `#18191a52` | Dialog backdrop | |
-| `--shadow-pop` | `0 1px 2px #18191a0f, 0 8px 24px #18191a14` | Dialog only | |
+| `--canvas` | `#f5f5f7` | Popup ground | |
+| `--panel` | `#ffffff` | Grouped panels, alert | |
+| `--fill` | `#7676801f` | Search field, segmented track, icon buttons | |
+| `--fill-strong` | `#76768033` | Pressed fills | |
+| `--hover` | `#00000008` | Row hover | |
+| `--separator` | `#3c3c4329` | Hairlines | |
+| `--label` | `#1d1d1f` | Titles, body | 16.8:1 |
+| `--secondary` | `#66666b` | Hosts, times, notes, placeholders | 5.7:1, 4.8:1 on `--fill` |
+| `--tint` | `#0066cc` | Text buttons, search caret | 5.6:1 |
+| `--focus` | `#0066cc73` | 3px focus ring (Apple's translucent blue halo) | |
+| `--primary` | `#1d1d1f` | Save pill | |
+| `--primary-hover` | `#333336` | Save pill hover | |
+| `--on-primary` | `#ffffff` | Text on the pill | 16.8:1 |
+| `--on-primary-soft` | `#ffffff29` | Shortcut chip in the pill | |
+| `--danger` | `#d70015` | Destructive text | 5.4:1 |
+| `--danger-fill` | `#d700151a` | Remove-button hover, error banner | |
+| `--mark` | `#fde68a` | Search-match highlight | label 13.5:1 |
+| `--brand-pine` | `#20372b` | Logo tile only | |
+| `--scrim` | `#0000002e` | Alert backdrop | |
+| `--shadow-thumb` | `0 3px 8px #0000001f, 0 3px 1px #0000000a` | Segmented thumb | |
+| `--shadow-alert` | `0 16px 48px #0000002e, 0 0 0 .5px #0000001a` | Alert | |
+| `--shadow-panel` | `0 .5px 1px #0000000f` | Panels, a barely-there lift | |
+
+Monogram tints (background / glyph, contrast): blue `#e5efff`/`#0a58ca` 5.6:1, green `#e3f6e8`/`#18753a` 5.0:1, orange `#fff0e0`/`#a34a07` 5.3:1, purple `#f1eafe`/`#6d28d9` 6.1:1, pink `#fde8f1`/`#be185d` 5.2:1, teal `#e0f5f5`/`#0f766e` 4.8:1. The tint is chosen from the site name, so a site always keeps its colour.
 
 ## Type
 
-System stack: `-apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif`. No remote or bundled fonts.
+`-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif`. No remote or bundled fonts.
 
 | Token | Size / line | Weight | Use |
 | --- | --- | --- | --- |
-| `--fs-xs` | 11px / 16px | 400-500 | Meta, hints, notes, footer, segments |
-| `--fs-sm` | 12px / 18px | 400-600 | Buttons, search, secondary copy |
-| `--fs-md` | 13px / 18px | 500-600 | Titles, section heading |
-| `--fs-lg` | 15px / 20px | 600 | Wordmark, empty and dialog headings |
+| `--fs-caption` | 11px / 14px | 400-500 | Hints, notes, chips |
+| `--fs-footnote` | 12px / 16px | 400-600 | Hosts, times, segments, group headers |
+| `--fs-body` | 13px / 18px | 400-600 | Titles, buttons, search |
+| `--fs-headline` | 15px / 20px | 600 | Section titles, alert title, empty states |
+| `--fs-title` | 17px / 22px | 600 | Wordmark |
 
-Counts and times use `font-variant-numeric: tabular-nums`. Letter-spacing `-0.01em` on 13px and up.
+Letter-spacing follows SF's optical tracking: `-0.01em` at 13px, `-0.02em` at 15px and up. Counts and times use tabular figures.
 
 ## Space, radius, elevation
 
-- Spacing on a 4px grid: `--s1` 4, `--s2` 8, `--s3` 12, `--s4` 16, `--s5` 20, `--s6` 24.
-- Radius: `--r` 6px for buttons, panels, rows, fields and the dialog; `--r-sm` 4px for monograms, chips and segments.
-- Elevation: none, except `--shadow-pop` on the dialog.
+- Spacing on a 4px grid: 4, 8, 12, 16, 20, 24.
+- Radius: `--r-panel` 12px, `--r-control` 9px (search, segmented track), `--r-thumb` 7px, `--r-icon` 7px (24px monogram) and 9px (32px), `--r-pill` 999px.
+- Elevation: `--shadow-panel` on panels, `--shadow-thumb` on the segmented thumb, `--shadow-alert` on the alert. Nothing else casts a shadow.
 
 ## Motion
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--dur-fast` | 120ms | Hover tints, colour changes |
-| `--dur` | 180ms | Press scale, action reveal |
-| `--dur-slow` | 220ms | Feedback and dialog entry |
-| `--ease` | `cubic-bezier(.2, .8, .2, 1)` | Everything |
+| `--dur-fast` | 150ms | Hover, colour, opacity |
+| `--dur` | 280ms | Segmented thumb, alert and feedback entry |
+| `--ease` | `cubic-bezier(.32, .72, 0, 1)` | Everything |
 
-Only `opacity`, `transform`, `color`, `border-color` and `background-color` animate.
+Only `opacity`, `transform`, `color` and `background-color` animate.
 
 ## Components
 
-- **Primary button**: pine fill, white text, 40px tall, `--r`, icon and label left, the assigned shortcut as an `--on-primary-soft` chip on the right (hidden when none is assigned). Hover `--primary-hover`, active `--primary-press` + `scale(.98)`, focus 2px `--primary` outline offset 2px, disabled 40% opacity.
-- **Text button**: transparent, `--text-2`, 28px tall. Hover `--surface-2` + `--text`. Destructive variant hovers to `--danger-soft` + `--danger`.
-- **Secondary button**: `--bg`, `--line-strong` border, `--text`.
-- **Search field**: 32px, `--surface-1`, transparent border that turns `--primary` on focus-within (its focus indicator); `/` chip at the end.
-- **Segmented control**: `--surface-1` track, `--bg` active segment with `--text`, inactive `--text-2`; `aria-pressed` drives the state.
-- **Sort select**: native `<select>`, `--text-2`, transparent ground, hover `--surface-2`.
-- **Layout budget**: Chrome caps popups at 600px, so the list shows 4.5 rows (216px) and scrolls; the header carries the privacy note instead of a footer.
-- **Row**: 48px minimum, no borders, `--r` hover tint. Actions sit at 55% opacity and reach 100% on row hover or focus-within. Search matches wrap in `<mark>`.
-- **Site header** (site sort only): sticky, `--bg`, `--fs-xs` `--text-3` host plus count.
-- **Monogram**: 24px (row) or 32px (current tab), `--r-sm`, `--text-2` initial.
+- **Save pill**: `--primary`, white `--fs-body` semibold, 36px tall, `--r-pill`; hover `--primary-hover`, active `scale(.97)`, focus 3px `--tint` ring; shortcut chip on the right.
+- **Text button**: `--tint`, no fill; hover opacity .7; destructive variant `--danger`.
+- **Search field**: 30px, `--fill`, `--r-control`, magnifier in `--secondary`, `/` chip until focused.
+- **Segmented control**: four equal segments on a `--fill` track; a white thumb with `--shadow-thumb` slides to the active segment (`data-active` on the track); labels `--fs-footnote`, active semibold.
+- **Sort**: native `<select>` in `--tint`, right-aligned, chevron icon.
+- **Grouped list**: white panel, rows 48px, hairline separators inset 48px from the left; hover `--hover`; actions are 26px round `--fill` buttons that fade in on hover or focus.
+- **Group header** (site sort): sticky, `--panel`, `--fs-footnote` semibold `--secondary`, count on the right.
+- **Alert**: 270px, 14px radius, centred title and message, two split buttons under a hairline: Cancel in `--tint`, the action in `--tint` semibold (or `--danger` when destructive).
+- **Layout budget**: Chrome caps popups at 600px; the list scrolls inside its panel at 240px (five rows).
