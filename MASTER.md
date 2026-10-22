@@ -4,48 +4,26 @@ Single source of truth for the popup's visual layer. Every colour, size, radius 
 
 ## Theses
 
-**Visual.** A quiet, monochrome utility on one white surface. One tinted card holds the tab that is open now; everything else is structured by type weight, spacing and one hairline above the action bar. Near-black for text, a clear green from the logo's family for the single primary action and focus, one grey for everything secondary, red only for destructive actions,  One system font (SF on Apple devices, Segoe UI on Windows) at three sizes. Native menus for filtering and sorting, because they are accessible, keyboard-ready and cost nothing to ship. Light only.
+**Visual.** A light utility on a soft grey-green canvas. The tab that is open now sits in one deep green hero card with a white Save button, the strongest element on screen. Saved pages are soft white cards with coloured site tiles and a time pill, grouped by day (or by site), so a long shelf scans by colour and date. Filters show their counts. One system font (SF on Apple devices, Segoe UI on Windows). Light only, no libraries.
 
-**Interaction.** Immediate and understated: 140ms colour and opacity changes, a 1.5% press on the primary button, row actions that appear on hover or focus, and a 4px fade-in for feedback and the dialog. Search filters as you type, `/` focuses it and Escape clears it. No sliding, bouncing, glowing or looping. `prefers-reduced-motion` turns all of it off.
+**Interaction.** Quick and quiet: 140ms colour, shadow and opacity changes; cards lift a little on hover; buttons press to 98.5%; feedback and the dialog rise 6px. Search filters as you type (`/` focuses it, Escape clears it). Arrow keys move through saved pages, Enter reopens, Delete or Backspace removes. No bouncing, glowing or looping. `prefers-reduced-motion` turns all of it off.
 
-**Allowed patterns:** two hairline rules; a keyboard-shortcut hint inside the Save button and a `/` hint inside search; a soft yellow `<mark>` on search matches; sticky site headers when sorted by site; the pine logo tile kept from the original brand.
+**Allowed patterns:** the deep green hero card; white cards with soft shadows; six site tints keyed to the site name; counts inside filter chips; uppercase day and site headers; time pills; keyboard hints in the bottom bar; a soft yellow `<mark>` on search matches; the pine logo tile kept from the original brand.
 
 ## Tokens
 
-Light only (`color-scheme: light`). Contrast on white unless stated.
+All values live in the `:root` block of `popup/popup.css`. Key pairs (contrast): text `#111412` on white 18.4:1; muted `#626864` on white 5.7:1 and on the canvas `#f4f6f5` 5.3:1; white on hero `#1f4a37` 10.0:1; soft hero text `#b9d8c6` on it 6.6:1; white on accent `#2d6a4f` 6.4:1; danger `#c8261b` on white 5.9:1. Site tints are pale backgrounds with dark glyphs, each at 4.5:1 or more.
 
-| Token | Value | Use | Contrast |
-| --- | --- | --- | --- |
-| `--bg` | `#ffffff` | Surface, text on the primary button | 18.9:1 on `--text` |
-| `--subtle` | `#f4f4f5` | Search field, monograms, secondary button, feedback | |
-| `--hover` | `#f7f7f8` | Row hover, loading rows | |
-| `--line` | `#ebebed` | Hairlines, `/` hint border, dialog border | |
-| `--text` | `#111111` | Text | 18.9:1 |
-| `--muted` | `#6b6b6b` | Secondary text, menus, text buttons | 5.3:1, 4.9:1 on `--subtle` |
-| `--danger` | `#c8261b` | Destructive text and button | 5.9:1 |
-| `--danger-subtle` | `#fdf1f0` | Remove hover, error feedback | |
-| `--mark` | `#fdeaa0` | Search-match highlight | `--text` on it 15.7:1 |
-| `--brand-pine` | `#20372b` | Logo tile | |
-| `--accent` | `#2d6a4f` | Save button, dialog action, focus ring, search focus | white on it 6.4:1 |
-| `--accent-hover` | `#256246` | Primary hover | white on it 7.2:1 |
-| `--on-accent` | `#ffffff` | Text on `--accent` | |
-| `--accent-tint` | `#f1f6f3` | Now-open card, active chip, Open all | `--accent` on it 5.9:1 |
-| `--accent-line` | `#d6e6dc` | Borders on tinted elements | |
-| `--scrim` | `#11111133` | Dialog backdrop | |
-| `--shadow-dialog` | `0 1px 2px #1111110d, 0 12px 32px #1111111f` | Dialog only | |
-
-Type: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif` at `--fs-sm` 12px, `--fs-md` 13px (base, 18px line), `--fs-lg` 15px; weights 400, 500 for row titles, 600 for headings and buttons. Counts and times use tabular figures.
-
-Space on a 4px grid with a 16px page margin. Radius `--r` 8px (buttons, fields, rows), `--r-sm` 6px (monograms, menus, remove button), 12px for the dialog. Motion: `--dur` 140ms on `--ease` `cubic-bezier(.2, 0, 0, 1)`; only opacity, transform and colours animate.
+Radius 10px (cards, buttons, search), 7px (tiles, small buttons), 14px (hero, dialog), pills for chips and time. Motion 140ms (220ms for entries) on `cubic-bezier(.2, 0, 0, 1)`.
 
 ## Components
 
-- **Now open card**: the current tab in a 12px card with `--accent-tint` ground and `--accent-line` border, a green "Now open" label, a white monogram, and the full-width Save button.
-- **Primary button**: `--accent` fill, white 600 text, 38px, `--r`, download icon; hover `--accent-hover`, active `scale(.985)`, shortcut hint on the right at 65% opacity.
-- **Search**: 34px `--subtle` field; on focus it turns white with a 1px `--accent` inset ring.
-- **Filter chips**: All, Today, 7 days, Older as 26px pills; the active chip uses `--accent-tint`, `--accent-line` and `--accent` text. `aria-pressed` drives the state.
-- **Sort menu**: native `<select>` beside the Shelf heading, sized to its value.
-- **Row**: 46px grid with the monogram, title over site, and the time in its own right-hand column; on hover or focus the time fades and a bordered remove button takes its place.
-- **Bottom bar**: Clear all (muted, red on hover) on the left and Open all as a tinted green button on the right.
-- **Dialog**: 300px, left-aligned title and message, Cancel (`--subtle`) and the action (`--accent`, or `--danger` when destructive) on the right.
-- **Layout budget**: Chrome caps popups at 600px; the list scrolls at 198px.
+- **Hero card**: deep green, "NOW OPEN" label, white-ringed site tile, 15px title, white Save button with the shortcut chip, one-line hint.
+- **Search**: 38px white field with a hairline ring that becomes a 2px green ring on focus; `/` chip until focused.
+- **Filter chips**: All, Today, 7 days, Older, each with its live count; the active chip is solid green with white text.
+- **Sort menu**: native `<select>` beside the Shelf heading.
+- **Saved page card**: 50px white card, site tile, title over site, time pill on the right; hover lifts it and swaps the pill for a remove button; keyboard focus draws a green ring.
+- **Group headers**: uppercase day (Today, Yesterday, This week, Earlier) or site name with a count, sticky while scrolling. Title sort stays flat.
+- **Bottom bar**: ↑↓ and ↵ hints, Clear all, and a tinted green Open all that turns solid on hover.
+- **Dialog**: 300px, left-aligned, Cancel and the action (green, or red when destructive).
+- **Layout budget**: Chrome caps popups at 600px; the list scrolls at 196px.

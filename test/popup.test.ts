@@ -5,7 +5,9 @@ import type { AppState, SavedTab } from "../src/domain";
 import type { Request } from "../src/contracts";
 
 const html = readFileSync("popup/index.html", "utf8");
-function item(n = 1): SavedTab { return { id: String(n), title: `Useful page ${n}`, url: `https://example.com/${n}`, savedAt: new Date().toISOString() }; }
+// Fixed, descending save times keep "newest first" deterministic: item(1) is the newest.
+const base = Date.now();
+function item(n = 1): SavedTab { return { id: String(n), title: `Useful page ${n}`, url: `https://example.com/${n}`, savedAt: new Date(base - n * 1000).toISOString() }; }
 function button(id: string) { return document.getElementById(id) as HTMLButtonElement; }
 function text(id: string) { return document.getElementById(id)?.textContent; }
 
@@ -185,5 +187,24 @@ describe("finding pages on a full shelf", () => {
     await vi.waitFor(() => expect(text("status")).toContain("Opened 2 tabs"));
     expect(f.sendMessage).toHaveBeenCalledWith({ type: "OPEN_SELECTED", ids: ["c", "d"] });
     expect(f.sendMessage.mock.calls.some(([request]) => request.type === "OPEN_BATCH")).toBe(false);
+  });
+  it("counts each date filter and groups a date-sorted shelf by day", async () => {
+    await prepare(shelf());
+    expect(document.querySelector("[data-count=all]")?.textContent).toBe("4");
+    expect(document.querySelector("[data-count=older]")?.textContent).toBe("1");
+    expect([...document.querySelectorAll(".group-header")].map(node => node.firstChild?.textContent)).toContain("Earlier");
+  });
+  it("moves through results with the arrow keys and removes with Delete", async () => {
+    const f = await prepare(shelf());
+    const search = document.getElementById("search") as HTMLInputElement;
+    search.focus();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+    const rows = [...document.querySelectorAll<HTMLButtonElement>(".tab-main")];
+    expect(document.activeElement).toBe(rows[0]);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+    expect(document.activeElement).toBe(rows[1]);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(text("count")).toBe("3"));
+    expect(f.sendMessage).toHaveBeenCalledWith({ type: "REMOVE_TAB", id: "c" });
   });
 });

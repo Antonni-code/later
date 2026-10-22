@@ -30,7 +30,7 @@
   <section class="shelf" aria-labelledby="saved-heading" aria-busy="true" id="shelf">
     <div class="section-header">
       <h2 id="saved-heading" tabindex="-1">Shelf <span id="count" class="count"></span></h2>
-      <label class="menu" id="sort-menu"><span class="visually-hidden">Sort by</span>
+      <label class="menu"><span class="visually-hidden">Sort by</span>
         <select id="sort" aria-controls="saved-tabs"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="title">Title</option><option value="site">Site</option></select>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
       </label>
@@ -38,19 +38,20 @@
     <div id="toolbar" class="toolbar" hidden>
       <label class="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
-        <input id="search" type="search" placeholder="Search title or site" aria-label="Search saved tabs" aria-controls="saved-tabs" autocomplete="off" spellcheck="false" maxlength="100" />
+        <input id="search" type="search" placeholder="Search your shelf" aria-label="Search saved tabs by title or site" aria-controls="saved-tabs" autocomplete="off" spellcheck="false" maxlength="100" />
         <kbd aria-hidden="true">/</kbd>
       </label>
       <div class="chips" role="group" aria-label="Saved">
-        <button type="button" data-range="all" aria-pressed="true">All</button>
-        <button type="button" data-range="today" aria-pressed="false">Today</button>
-        <button type="button" data-range="week" aria-pressed="false">7 days</button>
-        <button type="button" data-range="older" aria-pressed="false">Older</button>
+        <button type="button" data-range="all" aria-pressed="true">All <span data-count="all"></span></button>
+        <button type="button" data-range="today" aria-pressed="false">Today <span data-count="today"></span></button>
+        <button type="button" data-range="week" aria-pressed="false">7 days <span data-count="week"></span></button>
+        <button type="button" data-range="older" aria-pressed="false">Older <span data-count="older"></span></button>
       </div>
     </div>
     <div id="loading-state" class="loading-state" role="status" aria-label="Loading your shelf"><span></span><span></span><span></span></div>
     <ul id="saved-tabs" class="tab-list" aria-label="Saved tabs"></ul>
     <div id="empty-state" class="empty-state" hidden>
+      <span class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 13.5 6.5 6h11l2.5 7.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><path d="M4 13.5h4.5l1.5 2h4l1.5-2H20"/></svg></span>
       <h3>Make room for what’s next.</h3>
       <p>Save a tab, close the noise. Your page will be waiting right here.</p>
     </div>
@@ -60,8 +61,11 @@
 
   <footer class="bar">
     <span id="shelf-note" class="visually-hidden">Saved pages stay on your shelf after reopening.</span>
-    <button id="clear-all" class="text-button clear-button" type="button" disabled>Clear all</button>
-    <button id="open-all" class="open-button" type="button" disabled>Open all</button>
+    <span class="keys" aria-hidden="true" title="Delete or Backspace removes the selected page"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>↵</kbd> open</span>
+    <span class="bar-actions">
+      <button id="clear-all" class="text-button clear-button" type="button" disabled>Clear all</button>
+      <button id="open-all" class="open-button" type="button" disabled>Open all</button>
+    </span>
   </footer>
 </main>
 <dialog id="confirm-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description"><h2 id="dialog-title"></h2><p id="dialog-description"></p><div class="dialog-actions"><button id="dialog-cancel" class="secondary-button" type="button" autofocus>Cancel</button><button id="dialog-confirm" class="confirm-button" type="button">Confirm</button></div></dialog>
