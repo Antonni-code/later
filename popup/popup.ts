@@ -1,7 +1,7 @@
 import { send } from "./api";
 import { MAX_OPEN_BATCH, SHELF_KEY, displayHost, relativeTime } from "../src/domain";
 import type { AppState, SavedTab } from "../src/domain";
-import { DEFAULT_VIEW, RANGES, SORT_KEYS, applyView, highlight, isFiltered, terms } from "./view";
+import { DEFAULT_VIEW, RANGES, SORT_KEYS, applyView, dayBucket, highlight, inRange, isFiltered, terms } from "./view";
 import type { Range, SortKey, View } from "./view";
 
 function element<T extends HTMLElement>(id: string): T {
@@ -20,6 +20,7 @@ const ui = {
   confirm: element<HTMLButtonElement>("dialog-confirm"), cancel: element<HTMLButtonElement>("dialog-cancel"),
   toolbar: element("toolbar"), search: element<HTMLInputElement>("search"), sort: element<HTMLSelectElement>("sort"),
   ranges: [...document.querySelectorAll<HTMLButtonElement>("[data-range]")],
+  rangeCounts: [...document.querySelectorAll<HTMLElement>("[data-count]")],
   noResults: element("no-results"), noResultsText: element("no-results-text"), clearFilters: element<HTMLButtonElement>("clear-filters")
 };
 /** Search, sort and range only change what the popup shows; the shelf itself is never rewritten. */
@@ -38,6 +39,13 @@ function icon(name: "open" | "remove"): SVGSVGElement {
   path.setAttribute("d", name === "open" ? "M14 4h6v6M20 4l-9 9M10 4H4v16h16v-6" : "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5m4-5v5");
   svg.append(path);
   return svg;
+}
+
+/** One of six site tints, stable per site, so a long shelf can be scanned by colour. */
+function tint(host: string): string {
+  let hash = 0;
+  for (const char of host) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return String(hash % 6);
 }
 
 function marked(target: HTMLElement, text: string, words: readonly string[]): void {
@@ -90,7 +98,7 @@ function createRow(tab: SavedTab, index: number, words: readonly string[] = []):
   open.setAttribute("aria-label", `Reopen ${tab.title}`);
   const monogram = document.createElement("span");
   monogram.className = "tab-monogram"; monogram.setAttribute("aria-hidden", "true");
-  monogram.textContent = displayHost(tab.url).charAt(0).toUpperCase();
+  monogram.textContent = displayHost(tab.url).charAt(0).toUpperCase(); monogram.dataset.tint = tint(displayHost(tab.url));
   const copy = document.createElement("span"); copy.className = "tab-copy";
   const title = document.createElement("span"); title.className = "tab-title"; marked(title, tab.title, words);
   const meta = document.createElement("span"); meta.className = "tab-meta";
@@ -127,6 +135,7 @@ function render(): void {
   ui.title.textContent = tab?.title || "No current page"; ui.title.title = tab?.title || "";
   ui.host.textContent = tab?.url ? displayHost(tab.url) : "Open a regular web page";
   ui.monogram.textContent = tab?.url ? displayHost(tab.url).charAt(0).toUpperCase() : "—";
+  if (tab?.url) ui.monogram.dataset.tint = tint(displayHost(tab.url)); else delete ui.monogram.dataset.tint;
   ui.hint.textContent = tab?.saveable ? "It stays here until you’re ready." : tab?.reason || "Open a regular web page to get started.";
   const total = state.items.length;
   const filtered = isFiltered(view);
@@ -141,13 +150,19 @@ function render(): void {
   ui.empty.hidden = total > 0;
   ui.noResults.hidden = total === 0 || shown.length > 0;
   ui.noResultsText.textContent = view.query.trim() ? `No saved tabs match “${view.query.trim()}”.` : "Nothing saved in this range.";
+  ui.rangeCounts.forEach(node => {
+    const range = RANGES.find(key => key === node.dataset.count) ?? "all";
+    node.textContent = String(state?.items.filter(tab => inRange(tab.savedAt, range)).length ?? 0);
+  });
   const visible = shown.slice(0, visibleItems);
   const rows: HTMLLIElement[] = [];
-  const perHost = new Map<string, number>();
-  if (view.sort === "site") for (const tab of shown) { const key = displayHost(tab.url); perHost.set(key, (perHost.get(key) ?? 0) + 1); }
+  // Site sort groups by site; date sorts group by day; title sort stays a flat list.
+  const groupOf = view.sort === "site" ? (tab: SavedTab) => displayHost(tab.url) : view.sort === "title" ? null : (tab: SavedTab) => dayBucket(tab.savedAt);
+  const perGroup = new Map<string, number>();
+  if (groupOf) for (const tab of shown) { const key = groupOf(tab); perGroup.set(key, (perGroup.get(key) ?? 0) + 1); }
   visible.forEach((tab, index) => {
-    const key = displayHost(tab.url);
-    if (view.sort === "site" && (index === 0 || displayHost(visible[index - 1]?.url ?? "") !== key)) rows.push(groupHeader(key, perHost.get(key) ?? 0));
+    const previous = visible[index - 1];
+    if (groupOf && (!previous || groupOf(previous) !== groupOf(tab))) rows.push(groupHeader(groupOf(tab), perGroup.get(groupOf(tab)) ?? 0));
     rows.push(createRow(tab, index, words));
   });
   ui.list.replaceChildren(...rows);
@@ -251,6 +266,21 @@ ui.ranges.forEach(button => button.addEventListener("click", () => {
   setView({ range: range satisfies Range });
 }));
 ui.clearFilters.addEventListener("click", () => { ui.search.value = ""; setView({ query: "", range: "all" }); ui.search.focus(); });
+/** Arrow keys move between saved pages (from search too); Delete or Backspace removes the focused one. */
+document.addEventListener("keydown", event => {
+  if (ui.dialog.open || event.metaKey || event.ctrlKey || event.altKey) return;
+  const rows = [...ui.list.querySelectorAll<HTMLButtonElement>(".tab-main")];
+  const at = rows.indexOf(document.activeElement as HTMLButtonElement);
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    if (!rows.length || (at === -1 && document.activeElement !== ui.search)) return;
+    event.preventDefault();
+    const next = event.key === "ArrowDown" ? Math.min(at + 1, rows.length - 1) : at - 1;
+    (next < 0 ? ui.search : rows[next])?.focus();
+  } else if ((event.key === "Delete" || event.key === "Backspace") && at !== -1) {
+    event.preventDefault();
+    rows[at]?.parentElement?.querySelector<HTMLButtonElement>(".delete-button")?.click();
+  }
+});
 document.addEventListener("keydown", event => {
   const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement;
   if (event.key !== "/" || typing || ui.toolbar.hidden || ui.dialog.open || event.metaKey || event.ctrlKey || event.altKey) return;

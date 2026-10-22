@@ -58,3 +58,14 @@ export function highlight(text: string, words: readonly string[]): Segment[] {
   }
   return segments;
 }
+
+export type Day = "Today" | "Yesterday" | "This week" | "Earlier";
+
+/** Calendar bucket for date-sorted shelves: today, yesterday, the rest of the past 7 days, then earlier. */
+export function dayBucket(savedAt: string, now = Date.now()): Day {
+  const start = new Date(now); start.setHours(0, 0, 0, 0);
+  const time = Date.parse(savedAt);
+  if (time >= start.getTime()) return "Today";
+  if (time >= start.getTime() - 86_400_000) return "Yesterday";
+  return now - time < WEEK ? "This week" : "Earlier";
+}

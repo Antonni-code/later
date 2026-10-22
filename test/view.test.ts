@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SavedTab } from "../src/domain";
-import { DEFAULT_VIEW, applyView, highlight, inRange, isFiltered, terms } from "../popup/view";
+import { DEFAULT_VIEW, applyView, dayBucket, highlight, inRange, isFiltered, terms } from "../popup/view";
 
 const now = Date.parse("2026-10-20T12:00:00Z");
 const hoursAgo = (h: number) => new Date(now - h * 3_600_000).toISOString();
@@ -39,5 +39,12 @@ describe("shelf view", () => {
       { text: "Design", match: true }, { text: " <b>", match: false }, { text: "design", match: true }, { text: "</b>", match: false }
     ]);
     expect(highlight("İstanbul", ["i"])).toEqual([{ text: "İstanbul", match: false }]);
+  });
+  it("buckets saved dates into today, yesterday, this week and earlier", () => {
+    const local = new Date(2026, 9, 20, 12).getTime();
+    expect(dayBucket(new Date(2026, 9, 20, 1).toISOString(), local)).toBe("Today");
+    expect(dayBucket(new Date(2026, 9, 19, 23).toISOString(), local)).toBe("Yesterday");
+    expect(dayBucket(new Date(2026, 9, 16, 12).toISOString(), local)).toBe("This week");
+    expect(dayBucket(new Date(2026, 9, 1, 12).toISOString(), local)).toBe("Earlier");
   });
 });
